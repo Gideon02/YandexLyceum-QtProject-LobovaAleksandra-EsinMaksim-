@@ -1,0 +1,146 @@
+from dattetime import datetime
+import time
+from dateutil.tz import tzutc, tzlocal
+import pytz
+
+import sys
+from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtWidgets import QWidget, QApplication, QLCDNumber, QSlider, QVBoxLayout, QHBoxLayout, QPushButton, QLabel
+
+
+
+time_now = datetime.now()
+print(time_now.strftime("%Y-%m-%d\n%H:%M:%S"))
+
+for i in range(10):
+    #time.sleep(1)
+    time_now = datetime.now()
+    print(time_now.strftime('%H:%M:%S'))
+    
+tzutc = tzutc()
+tzlocal = tzlocal()
+
+tzkiev = pytz.timezone('Europe/Kiev') # есть в pytz/zoneinfo
+now = datetime.now(tzkiev)
+print(now.strftime("%Y-%m-%d\n%H:%M:%S UTC%z"))
+
+print(tzutc)
+print(tzlocal)
+
+class MainWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.initUI()
+        self.start_main_clock()
+        
+#----------------------------------------------> Hotkeys
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Escape:
+            self.close()
+            
+    def initUI(self):
+#----------------------------------------------> WindowOptions
+        self.setGeometry(200, 200, 1000, 800)
+        self.setWindowTitle('clock')
+#----------------------------------------------> MainClockOptions
+        self.main_clock = QLCDNumber(self)
+        self.main_clock.move(200, 30)
+        self.main_clock.resize(600, 100)    
+        self.main_clock.setDigitCount(8)
+#----------------------------------------------> TimerOptions
+        self.timer = QLCDNumber(self)
+        self.timer.setDigitCount(8)
+        self.timer.display('00' + ':' + '00' + ':' + '00')
+        self.timer_value = '00' + ':' + '00' + ':' + '00'
+        
+        self.slider_second = QSlider(Qt.Horizontal, self)
+        self.slider_minute = QSlider(Qt.Horizontal, self)
+        self.slider_hour = QSlider(Qt.Horizontal, self)
+        
+        self.slider_second.setMinimum(0)
+        self.slider_minute.setMinimum(0)
+        self.slider_hour.setMinimum(0)
+        self.slider_second.setMaximum(59)
+        self.slider_minute.setMaximum(59)
+        self.slider_hour.setMaximum(47)
+        
+        self.slider_second.valueChanged.connect(self.change_timer_sec)
+        self.slider_minute.valueChanged.connect(self.change_timer_min)
+        self.slider_hour.valueChanged.connect(self.change_timer_hour)
+        
+        self.start_btn = QPushButton('Start', self)
+        self.start_btn.clicked.connect(self.tick_timer)
+        
+        self.timer.move(30, 150)
+        self.timer.resize(200, 100)
+        
+        self.slider_second.move(30, 270)
+        self.slider_second.resize(200, 30)
+        
+        self.slider_minute.move(30, 310)
+        self.slider_minute.resize(200, 30)
+        
+        self.slider_hour.move(30, 350)
+        self.slider_hour.resize(200, 30)        
+        
+        self.start_btn.move(30, 400)
+        self.start_btn.resize(80, 30)
+        
+    def tick_timer(self):
+        timer_value = self.timer_value
+        start_s = int(timer_value[6:])
+        start_m = int(timer_value[3:5])
+        start_h = int(timer_value[:2])
+        for h in range(min(start_h, 47), -1 , -1):
+            print(h)
+            if start_h < 0:
+                start_h = 100
+            fixed_data = str(h).rjust(2, '0') + self.timer_value[3:]
+            self.timer.display(fixed_data)
+            self.timer_value = fixed_data
+            start_h -= 1              
+            for m in range(min(start_m, 59), -1, -1):
+                print(m)
+                if start_m < 0:
+                    start_m = 100
+                fixed_data = self.timer_value[:3] + str(m).rjust(2, '0') + self.timer_value[5:]
+                self.timer.display(fixed_data)
+                self.timer_value = fixed_data
+                start_m -= 1                
+                for s in range(min(start_s, 59), -1, -1):
+                    print(s)
+                    if start_s < 0:
+                        start_s = 100
+                    fixed_data = self.timer_value[:6] + str(s).rjust(2, '0')
+                    self.timer.display(fixed_data)
+                    self.timer_value = fixed_data
+                    start_s -= 1
+                    QTimer().singleShot(1000, self.tick_timer)
+        
+    def change_timer_sec(self, value):
+        fixed_data = self.timer_value[:6] + str(int(value)).rjust(2, '0')
+        self.timer.display(fixed_data)
+        self.timer_value = fixed_data
+        
+    def change_timer_min(self, value):
+        fixed_data = self.timer_value[:3] + str(int(value)).rjust(2, '0') + self.timer_value[5:]
+        self.timer.display(fixed_data)
+        self.timer_value = fixed_data
+        
+    def change_timer_hour(self, value):
+        fixed_data = str(int(value)).rjust(2, '0') + self.timer_value[2:]
+        self.timer.display(fixed_data)
+        self.timer_value = fixed_data
+        
+    def start_main_clock(self):
+        time_now = datetime.now()
+        self.main_clock.display(time_now.strftime('%H' + ':' + '%M' + ':' + '%S'))
+        QTimer().singleShot(1000, self.start_main_clock)
+
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    ex = MainWindow()
+    ex.show()
+    sys.exit(app.exec())
+
