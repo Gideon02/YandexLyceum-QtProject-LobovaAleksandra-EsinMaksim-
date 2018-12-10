@@ -9,3 +9,6 @@
 # pip install datetime
 # pip install python-dateutil
 # pip install pyqt5
+
+
+# ищи баги в программе
