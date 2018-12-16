@@ -252,7 +252,7 @@ class MainWindow(QWidget):
         self.clear_alarm_btn = QPushButton(self)
         self.clear_alarm_btn.resize(50, 30)
         self.clear_alarm_btn.move(930, 560)
-        self.clear_alarm_btn.setText('CLEAR')
+        self.clear_alarm_btn.setText('DELETE')
         self.clear_alarm_btn.clicked.connect(self.clear_alarm_data)
         self.clear_alarm_btn.setToolTip('Очистить')
         
